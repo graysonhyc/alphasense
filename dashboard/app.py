@@ -46,7 +46,7 @@ layout = dict(
     hovermode="closest",
     #plot_bgcolor="#F9F9F9",
     paper_bgcolor="#F9F9F9",
-    legend=dict(font=dict(size=10), orientation='h'),
+    legend=dict(font=dict(size=10), orientation='v'),
 )
 
 # Create app layout
@@ -130,10 +130,7 @@ app.layout = html.Div(
 # Helper functions
 def filter_dataframe(df_prediction, df_history, company, issuer):
     dff_prediction = df_prediction[df_prediction['company'].isin([company])
-             & df_prediction['issuer'].isin(issuer)
-             #& (df['date_posted'] > dt.datetime(year_slider[0], 1, 1))
-             #& (df['date_posted'] < dt.datetime(year_slider[1], 1, 1))
-             ]
+             & df_prediction['issuer'].isin(issuer)]
     dff_history = df_history[df_history['company'].isin([company])]
     
     return dff_prediction, dff_history
@@ -144,30 +141,29 @@ def filter_dataframe(df_prediction, df_history, company, issuer):
              [Input('company', 'value'),
                Input('issuer', 'value')])
 def main_graph(company, issuer):
+    if company is None: company = ''
+    if issuer is None: issuer = []
 
     layout_main = copy.deepcopy(layout)
     layout_main['title'] = 'Overview'
+    figure = go.Figure(layout=go.Layout(layout_main))
 
     dff_prediction, dff_history = filter_dataframe(df_prediction, df_history, company, issuer)
 
-    figure = px.scatter(dff_prediction,
-                        x='date_posted',
-                        y='predicted',
-                        color='issuer')
-
-    figure = go.Figure(layout=go.Layout(layout_main))
-    figure.add_trace(go.Scatter(x=dff_history.dates,
-                                y=dff_history.close,
-                                mode='lines',
+    figure.add_trace(go.Candlestick(x=dff_history.dates,
+                                open=dff_history.open,
+                                high=dff_history.high,
+                                low=dff_history.low,
+                                close=dff_history.close,
                                 name=company))
-
+    
     for i in issuer:
         dff_slice = dff_prediction[dff_prediction['issuer']==i]
         figure.add_trace(go.Scatter(x=dff_slice.date_posted,
                                 y=dff_slice.predicted,
                                 mode='markers',
                                 name=i))
-
+    
     return figure
 
 
