@@ -11,6 +11,7 @@ from flask import Flask
 import plotly.express as px
 import plotly.graph_objects as go
 import dash
+import dash_table
 from dash.dependencies import Input, Output, State
 import dash_core_components as dcc
 import dash_html_components as html
@@ -21,9 +22,9 @@ from controls import COUNTIES, WELL_STATUSES, WELL_TYPES, WELL_COLORS
 app = dash.Dash(__name__)
 server = app.server
 
-df_prediction = pd.read_csv('data/master_cleaned.csv')
+df_prediction = pd.read_csv('data/stock_predictions.csv').drop(['id'], axis=1)
 df_prediction['date_posted'] = pd.to_datetime(df_prediction['date_posted'])
-df_history = pd.read_csv('data/stock_history.csv')
+df_history = pd.read_csv('data/stock_history.csv').drop(['id'], axis=1)
 df_history['dates'] = pd.to_datetime(df_history['dates'])
 df_history = df_history.sort_values('dates')
 
@@ -118,6 +119,20 @@ app.layout = html.Div(
             ],
             className="row"
         ),
+        html.Div(
+            children=dash_table.DataTable(
+                id='datatable_graph',
+                columns=[{'name': i, 'id': i} for i in df_prediction.columns],
+                data=[],
+                sort_action='native',
+                style_table={
+                    'maxHeight': '350px',
+                    'overflowY': 'scroll',
+                    'padding': '12px',
+                }
+            ),
+            className="twelve columns"
+        )
     ],
     id="mainContainer",
     style={
@@ -139,7 +154,7 @@ def filter_dataframe(df_prediction, df_history, company, issuer):
 # Selectors -> graph
 @app.callback(Output('main_graph', 'figure'),
              [Input('company', 'value'),
-               Input('issuer', 'value')])
+              Input('issuer', 'value')])
 def main_graph(company, issuer):
     if company is None: company = ''
     if issuer is None: issuer = []
@@ -165,6 +180,19 @@ def main_graph(company, issuer):
                                 name=i))
     
     return figure
+
+
+@app.callback(Output('datatable_graph', 'data'),
+              [Input('main_graph', 'hoverData'),
+                Input('company', 'value'),
+                Input('issuer', 'value')])
+def datatable_graph(main_graph_hover, company, issuer):
+    if main_graph_hover:
+        issuer = [issuer[main_graph_hover['points'][0]['curveNumber'] - 1]]
+
+    dff_prediction, dff_history = filter_dataframe(df_prediction, df_history, company, issuer)
+
+    return dff_prediction.to_dict('records')
 
 
 # Main
