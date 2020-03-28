@@ -22,7 +22,7 @@ from controls import COUNTIES, WELL_STATUSES, WELL_TYPES, WELL_COLORS
 app = dash.Dash(__name__)
 server = app.server
 
-df_prediction = pd.read_csv('data/stock_predictions.csv')
+df_prediction = pd.read_csv('data/stock_predictions.csv').drop(['id'], axis=1)
 df_prediction['date_posted'] = pd.to_datetime(df_prediction['date_posted'])
 df_history = pd.read_csv('data/stock_history.csv')
 df_history['dates'] = pd.to_datetime(df_history['dates'])

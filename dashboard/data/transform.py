@@ -1,7 +1,7 @@
 import pandas as pd
 
-df_history = pd.read_csv('stock_history.csv').drop(['id'], axis=1)
-df_predictions = pd.read_csv('stock_predictions.csv').drop(['id'], axis=1)
+df_history = pd.read_csv('stock_history.csv')
+df_predictions = pd.read_csv('stock_predictions.csv')
 
 print(df_history.head())
 print(df_predictions[df_predictions.ticker == 700])
@@ -15,4 +15,4 @@ for ticker in df_predictions.ticker.unique():
 
 print(df_predictions[df_predictions.ticker == 700])
 
-df_predictions.to_csv('stock_predictions.csv')
+df_predictions.to_csv('stock_predictions.csv', index=False)
