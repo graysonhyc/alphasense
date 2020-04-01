@@ -164,10 +164,8 @@ def score_text(issuer, main_graph_hover):
 
     if main_graph_hover:
         issuer = [issuer[main_graph_hover['points'][0]['curveNumber'] - 1]][0]
-        print(issuer)
     else:
         issuer = [x for x in set(issuer).intersection(set(df_score.issuer.values))][0]
-        print('ss', issuer)
 
     if issuer in df_score.issuer.values:
         score = df_score[df_score.issuer == issuer]['score'].values
@@ -178,6 +176,7 @@ def score_text(issuer, main_graph_hover):
         )])
     else:
         return
+
 
 # Selectors -> graph
 @app.callback(Output('main_graph', 'figure'),
