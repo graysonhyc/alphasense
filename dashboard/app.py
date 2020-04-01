@@ -24,9 +24,12 @@ server = app.server
 
 df_prediction = pd.read_csv('data/stock_predictions.csv').drop(['id'], axis=1)
 df_prediction['date_posted'] = pd.to_datetime(df_prediction['date_posted'])
+
 df_history = pd.read_csv('data/stock_history.csv')
 df_history['dates'] = pd.to_datetime(df_history['dates'])
 df_history = df_history.sort_values('dates')
+
+df_score = pd.read_csv('data/issuer_score.csv')
 
 # Create controls
 company_options = [{'label': str(company), 'value': str(company)}
@@ -98,6 +101,7 @@ app.layout = html.Div(
                             value=None,
                             className="dcc_control"
                         ),
+                        html.Div(id='issuer_score_text'),
                     ],
                     className="pretty_container four columns"
                 ),
@@ -150,6 +154,30 @@ def filter_dataframe(df_prediction, df_history, company, issuer):
     
     return dff_prediction, dff_history
 
+
+# Selectors -> score text
+@app.callback(Output('issuer_score_text', 'children'),
+              [Input('issuer', 'value'),
+                Input('main_graph', 'hoverData')])
+def score_text(issuer, main_graph_hover):
+    if issuer is None: return
+
+    if main_graph_hover:
+        issuer = [issuer[main_graph_hover['points'][0]['curveNumber'] - 1]][0]
+        print(issuer)
+    else:
+        issuer = [x for x in set(issuer).intersection(set(df_score.issuer.values))][0]
+        print('ss', issuer)
+
+    if issuer in df_score.issuer.values:
+        score = df_score[df_score.issuer == issuer]['score'].values
+        return html.Div([dcc.Markdown(
+            """
+            The overall credit score for {} is {}/100.
+            """.format(issuer, score)
+        )])
+    else:
+        return
 
 # Selectors -> graph
 @app.callback(Output('main_graph', 'figure'),
