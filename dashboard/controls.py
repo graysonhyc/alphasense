@@ -1,6 +1,12 @@
 # flake8: noqa
 
 # In[]:
+INSTRUCTION = 'This is a dashboard for assessing the accuracy of the predictions made by different financial institutions on the stock market.\n\n \
+               Filter by stock - For selecting the stock you want to look at.\n \
+               Filter by issuer - For selecting the issuer(s) you want to look at, multi-selection allowed.\n \
+               Overview - Candlestick chart showing the price movements of selected stock and predictions made by the selected issuer(s).\n\n \
+               To view the details of predictions made by an issuer, hover on any marker in the Candlestick chart.\n\n'
+
 # Controls for webapp
 COUNTIES = {
     '001': 'Albany',

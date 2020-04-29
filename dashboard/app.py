@@ -13,11 +13,12 @@ import plotly.graph_objects as go
 import dash
 import dash_table
 from dash.dependencies import Input, Output, State
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 
 # Multi-dropdown options
-from controls import COUNTIES, WELL_STATUSES, WELL_TYPES, WELL_COLORS
+from controls import INSTRUCTION, COUNTIES, WELL_STATUSES, WELL_TYPES, WELL_COLORS
 
 app = dash.Dash(__name__)
 server = app.server
@@ -63,13 +64,27 @@ app.layout = html.Div(
                     [
                         html.H2(
                             'AlphaSense',
-
                         ),
                         html.H4(
                             'Issuer Credibility Overview',
                         )
                     ],
                     className='eight columns'
+                ),
+                dbc.Button("Instructions", id="open-body-scroll"),
+                dbc.Modal(
+                    [
+                        dbc.ModalHeader('Instructions'),
+                        dbc.ModalBody(INSTRUCTION),
+                        dbc.ModalFooter(
+                            dbc.Button(
+                                "Close", id="close-body-scroll", className="ml-auto"
+                            )
+                        ),
+                    ],
+                    id="modal-body-scroll",
+                    scrollable=True,
+                    className='pretty_container'
                 ),
             ],
             id="header",
@@ -113,8 +128,6 @@ app.layout = html.Div(
                                     id='main_graph',
                                 )
                             ],
-                            id="countGraphContainer",
-                            className="pretty_container"
                         )
                     ],
                     id="rightCol",
@@ -145,6 +158,19 @@ app.layout = html.Div(
     }
 )
 
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+app.callback(
+    Output("modal-body-scroll", "is_open"),
+    [
+        Input("open-body-scroll", "n_clicks"),
+        Input("close-body-scroll", "n_clicks"),
+    ],
+    [State("modal-body-scroll", "is_open")],
+)(toggle_modal)
 
 # Helper functions
 def filter_dataframe(df_prediction, df_history, company, issuer):
@@ -153,6 +179,13 @@ def filter_dataframe(df_prediction, df_history, company, issuer):
     dff_history = df_history[df_history['company'].isin([company])]
     
     return dff_prediction, dff_history
+
+
+@app.callback(Output('modal', 'style'),
+              [Input('modal-close-button', 'n_clicks')])
+def close_modal(n):
+    if (n is not None) and (n > 0):
+        return {"display": "none"}
 
 
 # Selectors -> score text
@@ -202,7 +235,7 @@ def main_graph(company, issuer):
     for i in issuer:
         dff_slice = dff_prediction[dff_prediction['issuer']==i]
         figure.add_trace(go.Scatter(x=dff_slice.date_posted,
-                                y=dff_slice.predicted,
+                                y=dff_slice.target_price,
                                 mode='markers',
                                 name=i))
     
