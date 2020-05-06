@@ -16,16 +16,34 @@ from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
+import psycopg2
 
 # Multi-dropdown options
-from controls import INSTRUCTION, COUNTIES, WELL_STATUSES, WELL_TYPES, WELL_COLORS
+from controls import INSTRUCTION, USER, PASSWORD, TABLES
 
 app = dash.Dash(__name__)
 server = app.server
 
+def retrieve_data():
+    # Establish a connection to the database by creating a cursor object
+    conn = psycopg2.connect(host="john.db.elephantsql.com", port = 5432, database=USER, user=USER, password=PASSWORD)
+    # Create a cursor object
+    cur = conn.cursor()
+
+    for item in TABLES.items():
+        cur.execute('select * from {}'.format(item[0]))
+        table = cur.fetchall()
+        df = pd.DataFrame(table, columns=item[1])
+        df = df.sort_values(['id'])
+        df.to_csv('data/{}.csv'.format(item[0]), index=False)
+retrieve_data()
+
+# If retrieving data from database failed, try use the backup data
+#df_prediction = pd.read_csv('data/stock_predictions_backup.csv').drop(['id'], axis=1)
 df_prediction = pd.read_csv('data/stock_predictions.csv').drop(['id'], axis=1)
 df_prediction['date_posted'] = pd.to_datetime(df_prediction['date_posted'])
 
+#df_history = pd.read_csv('data/stock_history_backup.csv')
 df_history = pd.read_csv('data/stock_history.csv')
 df_history['dates'] = pd.to_datetime(df_history['dates'])
 df_history = df_history.sort_values('dates')
@@ -34,7 +52,7 @@ df_score = pd.read_csv('data/issuer_score.csv')
 
 # Create controls
 company_options = [{'label': str(company), 'value': str(company)}
-                  for company in df_prediction['company'].unique()]
+                  for company in df_history['company'].unique()]
 
 issuer_options = [{'label': str(issuer), 'value': str(issuer)}
                   for issuer in df_prediction['issuer'].unique()]
