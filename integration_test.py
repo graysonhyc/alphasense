@@ -1,11 +1,14 @@
-# This gist contains a direct connection to a local PostgreSQL database
-# called "suppliers" where the username and password parameters are "postgres"
+# Code for performing integration tests for AlphaSense, a project under IIMT4601.
+# Tests are deisnged to connect to a psql database and perform insertion, deletion,
+# updating, and deleting.
 
 # This code is adapted from the tutorial hosted below:
 # http://www.postgresqltutorial.com/postgresql-python/connect/
 
 USER = "udgiapuy"
-PASSWORD = "HVaHbqd1S07gXIvUJYSJQFw_X0z25WhM"
+# I try to not include the password purposely as it will be on Github,
+# if you want to test out the code, please contact any of the team member.
+PASSWORD = "REMOVED"
 print('python db_integration_test.py')
 
 import psycopg2
